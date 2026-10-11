@@ -48,15 +48,14 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 @media (orientation:landscape){.body.split{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
 @media (orientation:portrait){.body.split{grid-template-rows:minmax(0,1.4fr) auto}}
 
-/* 버튼: 로고의 띠 모양 */
-.btn{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;min-height:3.4em;padding:.7em calc(var(--notch) + 1.5em);
-  background:var(--ink-3);color:var(--paper);font-size:1rem;font-weight:500;
-  clip-path:polygon(0 0,100% 0,calc(100% - var(--notch)) 50%,100% 100%,0 100%,var(--notch) 50%);transition:transform .12s ease,background .15s ease}
-.btn small{font-family:var(--f-en);font-weight:400;font-size:.62em;letter-spacing:.16em;text-transform:uppercase;opacity:.65}
+/* 버튼: 모두 둥근 알약 (정환님이 고른 모양). 큰 버튼에는 뜻에 맞는 아이콘(카메라·체크·프린터·내려받기)을 앞에 둔다 */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.55em;min-height:3.2em;padding:.65em 1.6em;border-radius:999px;
+  background:var(--ink-3);color:var(--paper);font-size:1rem;font-weight:500;line-height:1.2;border:1px solid var(--line);transition:transform .12s ease,background .15s ease}
+.btn svg{width:1.3em;height:1.3em;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
 .btn:active{transform:scale(.97)}
-.btn.primary{background:var(--paper);color:var(--ink)}
-.btn.big{font-size:1.3rem;min-height:3.8em;padding-inline:calc(var(--notch) + 2.6em)}
-.btn.ghost{background:none;clip-path:none;color:var(--paper-dim);min-height:2.8em;padding:.4em .6em;text-decoration:underline;text-underline-offset:.3em;text-decoration-color:var(--line)}
+.btn.primary{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.btn.big{font-size:1.3rem;min-height:3.6em;padding:.85em 2.1em .85em 1.8em;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.btn.ghost{background:none;color:var(--paper-dim);min-height:2.6em;padding:.35em 1.1em;font-size:.95rem}
 .btn[disabled]{opacity:.35;pointer-events:none}
 .row{display:flex;flex-wrap:wrap;gap:.7em;align-items:center}
 
@@ -84,16 +83,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 #s-idle h1{margin:0;font-size:clamp(1.9rem,6.4vmin,3.4rem);font-weight:500;line-height:1.28;letter-spacing:-.025em;white-space:pre-line;text-wrap:balance}
 .lede{margin:0;font-size:1.05rem;color:var(--paper);opacity:.9;max-width:30rem;text-wrap:balance}
 .fine{font-size:.74rem;color:var(--paper-dim);margin:0;max-width:30rem;text-wrap:balance}
-/* 시작 버튼: 카메라 아이콘이 든 둥근 알약 (정환님이 고른 모양) */
-.btn-start{display:inline-flex;align-items:center;justify-content:center;gap:.6em;min-height:3.6em;margin-top:.3em;padding:.85em 2.1em .85em 1.8em;border-radius:999px;
-  background:var(--paper);color:var(--ink);font-size:1.3rem;font-weight:500;line-height:1.2;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .12s ease}
-.btn-start svg{width:1.35em;height:1.35em;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
-.btn-start:active{transform:scale(.97)}
+#btnStart{margin-top:.3em}
 
 /* 언어 고르기: 첫 화면 오른쪽 위. 누르면 아래로 여섯 언어가 펼쳐진다 */
 .lang{position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:.35em}
 .lang .en{margin:0}
-.lang-btn{display:flex;align-items:center;gap:.45em;min-height:2.75em;padding:.35em .9em;border:1px solid rgba(241,236,225,.55);background:rgba(13,12,11,.35);font-family:var(--f-en);font-size:.9rem;letter-spacing:.04em}
+.lang-btn{display:flex;align-items:center;gap:.45em;min-height:2.75em;padding:.35em 1.05em;border-radius:999px;border:1px solid rgba(241,236,225,.55);background:rgba(13,12,11,.35);font-family:var(--f-en);font-size:.9rem;letter-spacing:.04em}
 .lang-btn svg{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:1.5}
 .lang-btn[aria-expanded="true"]{background:var(--paper);color:var(--ink)}
 .lang-list{position:absolute;top:calc(2.75em + 6px);right:0;z-index:5;display:flex;flex-direction:column;min-width:10.5em;background:var(--ink-2);border-top:1px solid var(--paper);box-shadow:0 18px 40px rgba(0,0,0,.5)}
@@ -121,7 +116,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .frame span small{font-family:var(--f-en);font-size:.5em;letter-spacing:.2em;color:var(--paper-dim);text-transform:uppercase}
 .frame span em{font-style:normal;font-size:.62em;color:var(--paper-dim)}
 .car-nav{display:flex;align-items:center;justify-content:center;gap:clamp(10px,3vmin,28px)}
-.car-arrow{width:3.2em;height:3.2em;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);flex:none}
+.car-arrow{width:3.2em;height:3.2em;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:50%;flex:none}
 .car-arrow:active{background:var(--ink-3)}
 .car-arrow svg{width:1.5em;height:1.5em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:square}
 .car-dots{display:flex}
@@ -173,7 +168,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .opt{display:flex;flex-direction:column;gap:.45em}
 .opt>label,.opt>.lab{font-family:var(--f-en);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--paper-dim)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chips button{min-height:2.8em;padding:.45em 1em;background:var(--ink-2);color:var(--paper-dim);display:flex;gap:.5em;align-items:baseline}
+.chips button{min-height:2.8em;padding:.45em 1.1em;border-radius:999px;background:var(--ink-2);color:var(--paper-dim);display:flex;gap:.5em;align-items:baseline}
 .chips button small{font-family:var(--f-en);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
 .chips button[aria-pressed="true"]{background:var(--paper);color:var(--ink)}
 
@@ -205,7 +200,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 @media (orientation:landscape) and (max-height:580px){
   html{font-size:14px}
   .screen{gap:10px;padding-block:14px}
-  .btn.big,.btn-start{font-size:1.15rem;min-height:3.3em}
+  .btn.big{font-size:1.15rem;min-height:3.3em}
   .side{gap:10px}
   .opt{gap:.3em}
   .chips button{min-height:2.6em}

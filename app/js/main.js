@@ -171,7 +171,7 @@ async function enterShoot() {
   catch (e) {
     const m = $('#camMsg'); m.hidden = false;
     const why = t(e.name === 'NotAllowedError' ? 'camDenied' : e.name === 'Insecure' ? 'camInsecure' : e.name === 'NotFoundError' ? 'camNone' : 'camFail');
-    m.innerHTML = ''; const w = document.createElement('div'); w.textContent = why; m.append(w); const b = document.createElement('button'); b.className = 'btn'; b.innerHTML = `<span>${t('retry')}</span><small>Retry</small>`; b.onclick = enterShoot; m.append(b);
+    m.innerHTML = ''; const w = document.createElement('div'); w.textContent = why; m.append(w); const b = document.createElement('button'); b.className = 'btn'; b.innerHTML = `<span>${t('retry')}</span>`; b.onclick = enterShoot; m.append(b);
     const d = document.createElement('button'); d.className = 'btn ghost'; d.textContent = t('demoFlow'); d.onclick = () => { DEMO = true; enterShoot(); }; m.append(d);
   }
 }
