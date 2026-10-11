@@ -113,7 +113,6 @@ function heroNext() {
   on.onload = () => { on.classList.add('on'); off.classList.remove('on'); }; on.src = hero.list[hero.at];
 }
 function heroPlay() { clearInterval(hero.timer); if (hero.list.length > 1) hero.timer = setInterval(() => { if (state.screen === 'idle' && document.visibilityState === 'visible') heroNext(); }, 9000); }
-const applyFont = () => { document.documentElement.dataset.font = S.uiFont || DEF.uiFont; };   // 화면 글꼴 (호스트 설정)
 function renderIdle() {
   const fb = $('#heroFallback');
   if (hero.list.length) fb.hidden = true;
@@ -255,7 +254,7 @@ const hold = $('#logoHold');
 hold.addEventListener('pointerdown', () => { holdT = setTimeout(openSettings, 2000); });
 ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => hold.addEventListener(ev, () => clearTimeout(holdT)));
 async function openSettings() {
-  $('#setExtra').value = String(S.extra); $('#setFont').value = S.uiFont || DEF.uiFont; $('#setCount').value = S.countdown; $('#setIdle').value = S.idleSec; $('#setCaption').value = S.caption; $('#setGreet').value = S.greetTitle; $('#setGreetSub').value = S.greetSub; $('#setGreetEn').value = S.greetEn; $('#setSafe').value = S.safe;
+  $('#setExtra').value = String(S.extra); $('#setCount').value = S.countdown; $('#setIdle').value = S.idleSec; $('#setCaption').value = S.caption; $('#setGreet').value = S.greetTitle; $('#setGreetSub').value = S.greetSub; $('#setGreetEn').value = S.greetEn; $('#setSafe').value = S.safe;
   $('#setMirror').checked = !!S.mirror; $('#setDate').checked = !!S.showDate; $('#setSound').checked = !!S.sound; $('#setTint').checked = !!S.logoTint; $('#setLine').checked = !!S.logoLine;
   $('#logoState').textContent = S.logo ? '이 태블릿에 올린 로고 파일을 쓰고 있습니다.' : '공식 사이트 로고(app/logo/logo.png)를 쓰고 있습니다.';
   const sel = $('#setCamera'); sel.length = 1;
@@ -266,8 +265,8 @@ $('#btnCloseSet').onclick = () => { $('#settings').hidden = true; };
 $('#btnSaveSet').onclick = () => {
   const num = (id, lo, hi, d) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
   Object.assign(S, { extra: +$('#setExtra').value, countdown: Math.round(num('#setCount', 2, 10, 5)), idleSec: Math.round(num('#setIdle', 30, 900, 120)), caption: $('#setCaption').value.trim(), greetTitle: $('#setGreet').value.trim() || DEF.greetTitle, greetSub: $('#setGreetSub').value.trim(), greetEn: $('#setGreetEn').value.trim(), safe: num('#setSafe', 0, 6, 2),
-    mirror: $('#setMirror').checked, showDate: $('#setDate').checked, sound: $('#setSound').checked, logoTint: $('#setTint').checked, logoLine: $('#setLine').checked, deviceId: $('#setCamera').value, frame: cur.frame, uiFont: $('#setFont').value });
-  save(); previews.map = {}; applyFont(); renderIdle(); $('#settings').hidden = true; toast('저장했습니다.');
+    mirror: $('#setMirror').checked, showDate: $('#setDate').checked, sound: $('#setSound').checked, logoTint: $('#setTint').checked, logoLine: $('#setLine').checked, deviceId: $('#setCamera').value, frame: cur.frame });
+  save(); previews.map = {}; renderIdle(); $('#settings').hidden = true; toast('저장했습니다.');
 };
 $('#setLogo').onchange = e => {
   const f = e.target.files[0]; if (!f) return; const fr = new FileReader();
@@ -286,7 +285,6 @@ addEventListener('popstate', () => { history.pushState({ wmh: 1 }, ''); if (!$('
 (async () => {
   try { await Promise.all([document.fonts.load('700 40px Jost'), document.fonts.load('300 40px Jost'), document.fonts.load('400 40px Jost'), document.fonts.load('500 40px "WMH Serif"', '환영'), document.fonts.load('40px "WMH Hand"'), document.fonts.load('40px "WMH Marker"'),
     document.fonts.load('40px "WMH Script"'), document.fonts.load('40px "WMH Bubble"'), document.fonts.load('40px "WMH Brush"'), document.fonts.load('25px "WMH Sans"', '추억')]); } catch (e) {}
-  applyFont(); try { await document.fonts.load('500 40px ' + getComputedStyle(document.body).getPropertyValue('--f-kr'), '가A'); } catch (e) {}
   await loadLogo(S.logo || LOGO_FILE); hero.list = await findPhotos(); changeLang(DEF_LANG); heroNext(); heroPlay(); show('idle');
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   window.__wmh = { compose, demoShots, FRAMES, LAYOUTS, state, cur, hero };   // 테스트·디버깅용

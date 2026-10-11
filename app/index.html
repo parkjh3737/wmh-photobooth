@@ -46,7 +46,7 @@
     <p class="en" id="greetEn">We will keep your memories for you</p>
     <h1 id="greetTitle">당신의 추억을 담아드릴게요!</h1>
     <p class="lede" id="greetSub">웰컴미스테익스하우스에서의 오늘을 사진으로 남겨보세요.</p>
-    <button class="btn primary big" id="btnStart"><span data-i18n="start">시작하기</span><small>Start</small></button>
+    <button class="btn-start" id="btnStart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.2c0-1 .8-1.7 1.7-1.7h2.3l1.6-2.2h5.8l1.6 2.2h2.3c1 0 1.7.8 1.7 1.7v9.6c0 1-.8 1.7-1.7 1.7H5.2c-1 0-1.7-.8-1.7-1.7z"/><circle cx="12" cy="12.8" r="3.7"/></svg><span data-i18n="start">시작하기</span></button>
     <p class="fine" data-i18n="fine">사진은 이 기기 안에서만 만들어지고, 첫 화면으로 돌아오면 지워집니다.</p>
   </div>
 </section>
@@ -152,7 +152,6 @@
     <div class="grid2">
       <div class="field"><label for="setCamera">카메라</label><select id="setCamera"><option value="">전면 카메라 (기본)</option></select></div>
       <div class="field"><label for="setExtra">고를 수 있게 더 찍는 컷 수</label><select id="setExtra"><option value="0">0컷 (고르기 없이 바로 완성)</option><option value="1">1컷 더</option><option value="2">2컷 더 (기본)</option><option value="3">3컷 더</option></select><span class="hint">예: 세 컷 프레임에서 2컷 더면 5컷을 찍고 3컷을 고릅니다.</span></div>
-      <div class="field"><label for="setFont">화면 글꼴</label><select id="setFont"><option value="gaegu">개구 (연필 손글씨, 기본)</option><option value="gamja">감자꽃 (동글동글 손글씨)</option><option value="dongle">동글 (길쭉 말랑)</option><option value="singleday">싱글데이 (장난스러운 장식)</option><option value="serif">명조 (처음 글꼴)</option></select><span class="hint">한국어·영어 화면에 쓰입니다. 인쇄되는 프레임 글씨는 바뀌지 않습니다.</span></div>
       <div class="field"><label for="setCount">컷마다 카운트다운 (초)</label><input type="number" id="setCount" min="2" max="10" inputmode="numeric"></div>
       <div class="field"><label for="setIdle">손대지 않으면 처음 화면으로 (초)</label><input type="number" id="setIdle" min="30" max="900" inputmode="numeric"></div>
       <div class="field" style="grid-column:1/-1"><label for="setGreet">첫 화면 인사말 (줄바꿈 가능)</label><textarea id="setGreet" rows="2" maxlength="80"></textarea></div>
