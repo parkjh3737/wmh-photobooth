@@ -2,6 +2,7 @@
 import { DEF, S, persist, LAYOUTS, HERO_FOCUS, LOGO_FILE } from './config.js';
 import { mk, loadLogo, tinted, logoRaw, logoMask } from './draw.js';
 import { FRAMES, FILTERS, compose, demoShots, drawHeroFallback, needOf, aspectFor } from './frames.js';
+import { LANGS, DEF_LANG, lang, t, setLang } from './i18n.js';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -21,7 +22,7 @@ function show(id) {
 function armIdle() {
   clearTimeout(idleTimer);
   if (state.screen === 'idle' || state.running || !$('#settings').hidden) return;
-  idleTimer = setTimeout(() => { if (printing) return armIdle(); if (!state.running) goIdle(); }, Math.max(30, +S.idleSec || 120) * 1000);
+  idleTimer = setTimeout(() => { if (printing) return armIdle(); if (!state.running) { goIdle(); changeLang(DEF_LANG); } }, Math.max(30, +S.idleSec || 120) * 1000);
 }
 addEventListener('beforeprint', () => { printing = true; clearTimeout(idleTimer); });
 addEventListener('afterprint', () => { printing = false; armIdle(); });
@@ -54,7 +55,7 @@ function renderFrameGrid() {
   Object.keys(FRAMES).forEach(k => {
     const b = document.createElement('button'); b.className = 'frame'; b.dataset.frame = k; b.setAttribute('aria-pressed', k === cur.frame);
     const c = mk(400, 600); compose(tmp, previewOpts(k, demo)); c.getContext('2d').drawImage(tmp, 0, 0, 400, 600);
-    const s = document.createElement('span'); s.innerHTML = `${FRAMES[k].ko}<small>${FRAMES[k].en}</small>`;
+    const s = document.createElement('span'); s.innerHTML = `${t('frame.' + k)}<small>${FRAMES[k].en}</small>`;
     b.append(c, s); b.onclick = () => { cur.frame = k; $$('#frameGrid .frame').forEach(f => f.setAttribute('aria-pressed', f.dataset.frame === k)); };
     grid.append(b);
   });
@@ -80,13 +81,24 @@ function renderIdle() {
   const fb = $('#heroFallback');
   if (hero.list.length) fb.hidden = true;
   else { fb.hidden = false; fb.width = Math.round(innerWidth * Math.min(2, devicePixelRatio || 1)); fb.height = Math.round(innerHeight * Math.min(2, devicePixelRatio || 1)); drawHeroFallback(fb); }
-  $('#greetTitle').textContent = S.greetTitle; $('#greetSub').textContent = S.greetSub; $('#greetEn').textContent = S.greetEn;
+  const ko = lang === 'ko';   // 한국어 인사말은 호스트 설정을 따르고, 다른 언어는 번역을 쓴다
+  $('#greetTitle').textContent = ko ? S.greetTitle : t('greetTitle'); $('#greetSub').textContent = ko ? S.greetSub : t('greetSub'); $('#greetEn').textContent = ko ? S.greetEn : t('eyebrow');
   const hold = $('#logoHold'), old = hold.querySelector('img'); if (old) old.remove();
   const useImg = logoRaw && !S.logoLine;
   $('#logoSvg').style.display = useImg ? 'none' : '';
   if (useImg) { const im = new Image(); im.alt = ''; im.src = ((S.logoTint && logoMask) ? tinted('#f1ece1') : logoRaw).toDataURL(); hold.append(im); }
 }
 addEventListener('resize', () => { if (!hero.list.length && state.screen === 'idle') renderIdle(); });
+/* 언어 고르기 (첫 화면 오른쪽 위) */
+const langBtn = $('#btnLang'), langList = $('#langList');
+function changeLang(l) { setLang(l); $('#langNow').textContent = LANGS[lang]; $$('#langList button').forEach(b => b.setAttribute('aria-checked', b.dataset.lang === lang)); renderIdle(); }
+function toggleLangList(open) { langList.hidden = !open; langBtn.setAttribute('aria-expanded', open); }
+Object.entries(LANGS).forEach(([k, name]) => {
+  const b = document.createElement('button'); b.type = 'button'; b.lang = k; b.dataset.lang = k; b.textContent = name; b.setAttribute('role', 'menuitemradio'); b.setAttribute('aria-checked', k === lang);
+  b.onclick = () => { changeLang(k); toggleLangList(false); }; langList.append(b);
+});
+langBtn.onclick = () => toggleLangList(langList.hidden);
+document.addEventListener('pointerdown', e => { if (!langList.hidden && !e.target.closest('.lang')) toggleLangList(false); });
 $('#btnStart').onclick = () => { keepAwake(); cur.frame = FRAMES[S.frame] ? S.frame : DEF.frame; cur.filter = S.filter; state.shots = []; state.picked = []; renderFrameGrid(); show('pick'); };
 $('#btnToShoot').onclick = () => enterShoot();
 
@@ -116,17 +128,15 @@ async function enterShoot() {
   state.need = needOf(cur.frame); state.takes = state.need + Math.max(0, +S.extra || 0);   // 프레임에 들어갈 수보다 몇 컷 더 찍어 고르게 한다
   $('#finder').style.setProperty('--ar', aspectFor(cur.frame).toFixed(4));
   $('#still').hidden = true; $('#count').textContent = ''; $('#camMsg').hidden = true;
-  $('#shootTitle').textContent = '준비되면 눌러주세요'; $('#btnShoot').hidden = false; $('#btnShoot').disabled = true;
+  $('#shootTitle').textContent = t('ready'); $('#btnShoot').hidden = false; $('#btnShoot').disabled = true;
   paintDots(); show('shoot');
   if (DEMO) { $('#btnShoot').disabled = false; return; }
   try { await startCam(); $('#btnShoot').disabled = false; }
   catch (e) {
     const m = $('#camMsg'); m.hidden = false;
-    const why = e.name === 'NotAllowedError' ? '카메라 사용이 허용되지 않았습니다. 브라우저 주소창의 자물쇠에서 카메라를 허용해 주세요.'
-      : e.name === 'Insecure' ? '이 주소에서는 카메라를 쓸 수 없습니다. https:// 로 시작하는 주소로 열어 주세요.'
-      : e.name === 'NotFoundError' ? '카메라를 찾지 못했습니다.' : '카메라를 켜지 못했습니다. 다른 앱이 카메라를 쓰고 있는지 확인해 주세요.';
-    m.innerHTML = `<div>${why}</div>`; const b = document.createElement('button'); b.className = 'btn'; b.innerHTML = '다시 시도<small>Retry</small>'; b.onclick = enterShoot; m.append(b);
-    const d = document.createElement('button'); d.className = 'btn ghost'; d.textContent = '견본 사진으로 흐름만 보기'; d.onclick = () => { DEMO = true; enterShoot(); }; m.append(d);
+    const why = t(e.name === 'NotAllowedError' ? 'camDenied' : e.name === 'Insecure' ? 'camInsecure' : e.name === 'NotFoundError' ? 'camNone' : 'camFail');
+    m.innerHTML = ''; const w = document.createElement('div'); w.textContent = why; m.append(w); const b = document.createElement('button'); b.className = 'btn'; b.innerHTML = `<span>${t('retry')}</span><small>Retry</small>`; b.onclick = enterShoot; m.append(b);
+    const d = document.createElement('button'); d.className = 'btn ghost'; d.textContent = t('demoFlow'); d.onclick = () => { DEMO = true; enterShoot(); }; m.append(d);
   }
 }
 async function countdown(n) {
@@ -138,7 +148,7 @@ async function runSequence() {
   state.running = true; clearTimeout(idleTimer); $('#btnShoot').hidden = true;
   const still = $('#still'), demo = DEMO ? demoShots(state.takes) : null;
   while (state.shots.length < state.takes) {
-    $('#shootTitle').textContent = `${state.shots.length + 1}번째 컷, 카메라를 봐주세요`; $('#still').hidden = true; paintDots();
+    $('#shootTitle').textContent = t('shotN', state.shots.length + 1); $('#still').hidden = true; paintDots();
     if (!await countdown(+S.countdown || 5)) return;
     const shot = DEMO ? demo[state.shots.length] : grab(); state.shots.push(shot);
     $('#flash').classList.remove('go'); void $('#flash').offsetWidth; $('#flash').classList.add('go'); shutter();
@@ -155,13 +165,13 @@ $('#btnCancelShoot').onclick = () => { state.running = false; show('pick'); };
 function enterSelect() {
   state.picked = []; const g = $('#shotGrid'); g.innerHTML = ''; g.style.gridTemplateColumns = `repeat(${state.shots.length > 6 ? 4 : 3},minmax(0,1fr))`;
   state.shots.forEach((s, i) => {
-    const b = document.createElement('button'); b.className = 'shot'; b.style.backgroundImage = `url(${thumb(s)})`; b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', `${i + 1}번째 사진`);
+    const b = document.createElement('button'); b.className = 'shot'; b.style.backgroundImage = `url(${thumb(s)})`; b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', `${i + 1}`);
     const em = document.createElement('em'); b.append(em);
-    b.onclick = () => { const at = state.picked.indexOf(i); if (at >= 0) state.picked.splice(at, 1); else if (state.need === 1) state.picked = [i]; else if (state.picked.length < state.need) state.picked.push(i); else return toast('다 골랐어요. 바꾸려면 고른 사진을 다시 눌러 빼주세요.'); paintPicked(); };
+    b.onclick = () => { const at = state.picked.indexOf(i); if (at >= 0) state.picked.splice(at, 1); else if (state.need === 1) state.picked = [i]; else if (state.picked.length < state.need) state.picked.push(i); else return toast(t('pickFull')); paintPicked(); };
     g.append(b);
   });
-  $('#pickAll').textContent = state.need; $('#pickTitle').textContent = state.need === 1 ? '가장 마음에 드는 한 장을 골라주세요' : `마음에 드는 ${{ 3: '세', 4: '네' }[state.need] || state.need} 장을 순서대로 골라주세요`;
-  $('#pickTip').textContent = state.need === 1 ? '다른 사진을 누르면 바뀝니다.' : '고른 순서대로 들어갑니다. 다시 누르면 빠집니다.';
+  $('#pickAll').textContent = state.need; $('#pickTitle').textContent = state.need === 1 ? t('pick1') : t('pickN', state.need);
+  $('#pickTip').textContent = t(state.need === 1 ? 'tip1' : 'tipN');
   paintPicked(); show('select');
 }
 function paintPicked() {
@@ -174,7 +184,7 @@ $('#btnReshoot1').onclick = $('#btnReshoot2').onclick = () => enterShoot();
 /* ───────── 5. 결과 · 인쇄 ───────── */
 function chips(el, items, key, after) {
   el.innerHTML = ''; Object.keys(items).forEach(k => {
-    const b = document.createElement('button'); b.innerHTML = `${items[k].ko}<small>${items[k].en}</small>`; b.setAttribute('aria-pressed', cur[key] === k);
+    const b = document.createElement('button'); b.innerHTML = `${t(key + '.' + k)}<small>${items[k].en}</small>`; b.setAttribute('aria-pressed', cur[key] === k);
     b.onclick = () => { cur[key] = k; [...el.children].forEach(c => c.setAttribute('aria-pressed', c === b)); if (after) after(); renderOut(); }; el.append(b);
   });
 }
@@ -190,7 +200,7 @@ function enterResult() {
 async function printCanvas(cv) {
   const img = $('#printImg'); img.src = cv.toDataURL('image/jpeg', .95);
   try { await img.decode(); } catch (e) {}
-  if (typeof window.print !== 'function') return toast('이 화면에서는 인쇄 창을 열 수 없습니다. "내 폰으로 저장"을 눌러 프린트를 선택해 주세요.', 6000);
+  if (typeof window.print !== 'function') return toast(t('noPrint', t('save')), 6000);
   window.print();
 }
 $('#btnPrint').onclick = () => { const c = mk(1200, 1800); compose(c, outOpts(+S.safe || 0)); printCanvas(c); };
@@ -199,7 +209,7 @@ $('#btnShare').onclick = async () => {
   const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .95)), name = `welcomemistakes-${today().replace(/\./g, '')}-${Date.now() % 100000}.jpg`;
   const file = new File([blob], name, { type: 'image/jpeg' });
   if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file] }); } catch (e) {} }
-  else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('사진을 이 기기에 저장했습니다.'); }
+  else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast(t('saved')); }
 };
 
 /* ───────── 호스트 설정 ───────── */
@@ -239,7 +249,7 @@ addEventListener('popstate', () => { history.pushState({ wmh: 1 }, ''); if (!$('
 (async () => {
   try { await Promise.all([document.fonts.load('700 40px Jost'), document.fonts.load('300 40px Jost'), document.fonts.load('400 40px Jost'), document.fonts.load('500 40px "WMH Serif"', '환영'), document.fonts.load('40px "WMH Hand"'), document.fonts.load('40px "WMH Marker"'),
     document.fonts.load('40px "WMH Script"'), document.fonts.load('40px "WMH Bubble"'), document.fonts.load('40px "WMH Brush"'), document.fonts.load('25px "WMH Sans"', '추억')]); } catch (e) {}
-  await loadLogo(S.logo || LOGO_FILE); hero.list = await findPhotos(); renderIdle(); heroNext(); heroPlay(); show('idle');
+  await loadLogo(S.logo || LOGO_FILE); hero.list = await findPhotos(); changeLang(DEF_LANG); heroNext(); heroPlay(); show('idle');
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   window.__wmh = { compose, demoShots, FRAMES, LAYOUTS, state, cur, hero };   // 테스트·디버깅용
 })();

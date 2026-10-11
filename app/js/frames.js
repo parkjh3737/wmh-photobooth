@@ -12,7 +12,7 @@ export const FRAMES = {
       const c = L.cells[0], ls = 6, x = 560, y = 1508, lh = 60, lines = ['ONE NIGHT OF', 'HANOK, STORIES AND', 'UNFORGETTABLE', 'MISTAKES'];
       ctx.save(); ctx.fillStyle = this.cream; ctx.textBaseline = 'alphabetic';
       ctx.font = `400 40px ${FONT_EN}`; spacedLeft(ctx, 'WELCOME MISTAKES', 96, 152, 7);
-      ctx.font = `400 250px ${FONT_SCRIPT}`; ctx.textAlign = 'left'; ctx.fillText('Our Story', 78, c.y + c.h + 150);
+      ctx.font = `400 250px ${FONT_SCRIPT}`; ctx.textAlign = 'left'; ctx.fillText('Our Story', 78, c.y + c.h + 204);   // 글자 위 끝이 사진 아래 약 20px
       // 오른쪽 아래 글: 첫 줄은 둘째 줄 너비에 맞춰 낱말 사이를 벌린다
       ctx.font = `400 41px ${FONT_EN}`;
       const wOf = t => [...t].reduce((a, ch) => a + ctx.measureText(ch).width + ls, -ls), words = lines[0].split(' ');
@@ -46,11 +46,11 @@ export const FRAMES = {
       paras.forEach(p => { p.forEach((line, i) => { const ch = [...line], ws = ch.map(c => ctx.measureText(c).width), gap = (i < p.length - 1 && ch.length > 1) ? (colW - ws.reduce((a, b) => a + b, 0)) / (ch.length - 1) : 0; let x = colX; ch.forEach((c, j) => { ctx.fillText(c, x, y); x += ws[j] + gap; }); y += lh; }); y += lh; });
       // 세로로 선 붓글씨: 따로 그린 뒤 마른 붓 자국처럼 군데군데 긁어내고, 왼쪽으로 돌려 사진 위에 걸쳐 세운다
       const m = mk(1300, 640), mx = m.getContext('2d'), r = rng(77);
-      mx.font = `400 322px ${FONT_BRUSH}`; mx.fillStyle = this.red; mx.textBaseline = 'alphabetic'; mx.fillText('memories', 40, 410);
+      mx.font = `400 300px ${FONT_BRUSH}`; mx.fillStyle = this.red; mx.textBaseline = 'alphabetic'; mx.fillText('memories', 40, 410);
       mx.globalCompositeOperation = 'destination-out'; mx.strokeStyle = '#000'; mx.fillStyle = '#000';
       for (let i = 0; i < 2600; i++) { const x = r() * 1300, yy = r() * 640, l = 8 + r() * 54; mx.globalAlpha = .25 + r() * .6; mx.lineWidth = .7 + r() * 1.8; mx.beginPath(); mx.moveTo(x, yy); mx.lineTo(x + l, yy - l * .32); mx.stroke(); }
       for (let i = 0; i < 10000; i++) { mx.globalAlpha = .3 + r() * .6; mx.fillRect(r() * 1300, r() * 640, 1 + r() * 2.2, 1 + r() * 2.2); }
-      ctx.translate(404, 1196); ctx.rotate(-Math.PI / 2 + .05); ctx.drawImage(m, 0, 0);
+      ctx.translate(404, 1290); ctx.rotate(-Math.PI / 2 + .05); ctx.drawImage(m, 0, 0);   // 위 끝은 머리글 아래, 아래 끝은 본문 위
       ctx.restore();
     } },
   /* 낙서: 흰 종이에 네 컷을 엇갈려 놓고, 남색 펜으로 끄적인 그림과 글씨를 얹는다 */
@@ -77,7 +77,7 @@ export const FRAMES = {
       arrow([[82, 530], [58, 560], [86, 584], [64, 610], [70, 660]]);
       // 둘째 컷: 길게 흐르는 선과 꾹꾹 칠한 동그라미들, 옆으로 세운 장소·날짜
       line([[1150, 60], [960, 70], [720, 150], [640, 300], [690, 440], [620, 560], [700, 700], [900, 770]], 3.5);
-      [[12, -78, 48], [342, -8, 46], [0, 122, 40], [338, 426, 26], [-72, 554, 56], [304, 566, 50]].forEach(([dx, dy, R]) => blob(p2.x + dx, p2.y + dy, R));
+      [[12, -64, 46], [342, -8, 46], [0, 122, 40], [338, 426, 26], [-72, 554, 56], [304, 566, 50]].forEach(([dx, dy, R]) => blob(p2.x + dx, p2.y + dy, R));
       ctx.save(); ctx.translate(p2.x + p2.w + 28, p2.y + 76); ctx.rotate(Math.PI / 2); ctx.font = `400 42px ${FONT_MARKER}`; spacedLeft(ctx, [(o.caption || 'BUAM-DONG · SEOUL').toUpperCase(), o.date].filter(Boolean).join('   '), 0, 0, 5); ctx.restore();
       // 두 줄 사이: 끄적인 글씨들
       txt('TAKE', 40, 790, 84); line([[38, 806], [62, 800], [84, 810], [108, 800], [132, 808], [150, 800]], 5);
@@ -86,19 +86,20 @@ export const FRAMES = {
       line([[488, 700], [520, 716], [498, 740], [540, 752], [520, 776], [566, 770]], 5); line([[556, 690], [566, 708]], 5); line([[582, 696], [588, 712]], 5);
       ctx.save(); ctx.beginPath(); ctx.rect(380, 780, 160, 88); ctx.clip(); blob(456, 868, 62); ctx.restore(); line([[388, 868], [530, 868]], 5);
       txt("DON'T BE SHY!", 624, 858, 68, -.04);
-      [["I don't wanna", 24, 968], ['go ...', 92, 1034], ['just wanna', 196, 1046], ['stay', 320, 1070], ['all the time', 380, 982]].forEach(([t, x, y]) => txt(t, x, y, 46, -.34));
+      // 읽는 순서대로: 첫 줄 "I don't wanna go ...", 둘째 줄 "just wanna stay" 에 이어 "all the time"
+      [["I don't wanna go ...", 24, 968], ['just wanna stay', 138, 1054], ['all the time', 380, 982]].forEach(([t, x, y]) => txt(t, x, y, 44, -.34));
       line([[566, 918], [568, 936]], 5); line([[586, 914], [588, 932]], 5); line([[554, 948], [578, 958], [598, 944]], 5);
       txt('MISTAKES', 626, 1014, 126, .02, FONT_BUBBLE);
       // 셋째 컷: 모서리의 마커 자국, 번호, 사진 위를 지나는 가는 선, 한마디
       tape(p3.x - 50, p3.y + 36, 110, -.75, 3); tape(p3.x + p3.w - 70, p3.y + p3.h + 44, 96, -.9, 3);
       ring(516, 1178, 36, 34, 5, 0, 1.35); txt('1', 505, 1192, 54); line([[494, 1206], [506, 1200], [518, 1208], [532, 1200]], 4);
       line([[58, 1340], [44, 1500], [70, 1640], [200, 1590], [250, 1520], [330, 1470], [470, 1400], [560, 1370]], 3.5);
-      txt('SO', 500, 1466, 54, -.22); txt('GOOD!', 524, 1522, 60, -.22);
+      txt('SO', 468, 1468, 54, -.22); txt('GOOD!', 472, 1526, 56, -.22);   // 넷째 컷 점선 앞에서 끝난다
       // 넷째 컷: 점선 테두리, 화살표, 번호 붙인 목록, 웃는 얼굴
       ctx.save(); ctx.lineWidth = 6; ctx.setLineDash([24, 18]); ctx.beginPath(); ctx.moveTo(p4.x - 22, p4.y + 10); ctx.lineTo(p4.x - 24, p4.y + p4.h + 26); ctx.lineTo(p4.x + p4.w + 12, p4.y + p4.h + 24); ctx.stroke(); ctx.restore();
       arrow([[1076, 1064], [1108, 1100], [1084, 1140], [1070, 1112], [1096, 1150], [1098, 1196]]);
-      txt('1. CUTE', 1034, 1262, 54, .5); line([[1022, 1292], [1150, 1370]], 6);
-      txt('2. BRAVE', 1026, 1440, 54, .46); line([[1018, 1474], [1042, 1486], [1062, 1480], [1156, 1550]], 6);
+      txt('1. CUTE', 1034, 1262, 48, .5); line([[1022, 1292], [1150, 1370]], 6);
+      txt('2. BRAVE', 1026, 1440, 48, .46); line([[1018, 1474], [1042, 1486], [1062, 1480], [1156, 1550]], 6);   // 글씨 끝이 오른쪽 가장자리에서 25px 안쪽
       smile(1100, 1634, 48); ring(1100, 1634, 54, 50, 3, .4, 1.1);
       txt('3.', 650, 1764, 62); txt('SMILE', 726, 1760, 84, -.02, FONT_BUBBLE); line([[726, 1774], [756, 1768], [796, 1778], [856, 1768], [916, 1776]], 4);
       [[956, 1740], [1002, 1736]].forEach(([x, y]) => line([[x, y + 16], [x - 16, y - 2], [x - 6, y - 14], [x, y - 4], [x + 6, y - 14], [x + 16, y - 2], [x, y + 16]], 4));
@@ -116,9 +117,9 @@ export const FRAMES = {
       const arrow = (x, y) => { ctx.fillStyle = white; ctx.beginPath(); ctx.moveTo(x, y - 9); ctx.lineTo(x + 27, y); ctx.lineTo(x, y + 9); ctx.closePath(); ctx.fill(); };
       ctx.save();
       // 윗띠: 집 이름과 규격 글자, 오른쪽 끝에 컷 번호
-      [[-6, C[0]], [C[1].x + 8, C[1]]].forEach(([x, c], i) => { T(brand, x, 92, 27, 700); T(spec, x + 168, 122, 19, 400); T(String(i + 1), i ? 1192 : c.x + c.w, 122, 27, 700, 'right'); });
+      [[C[0].x + 8, 162, C[0].x + C[0].w], [C[1].x + 8, C[1].x + 150, 1172]].forEach(([bx, sx, nx], i) => { T(brand, bx, 92, 27, 700); T(spec, sx, 122, 19, 400); T(String(i + 1), nx, 122, 27, 700, 'right'); });
       // 가운데띠: 아랫줄 컷의 규격 글자와 번호
-      [C[2], C[3]].forEach((c, i) => { T(spec, c.x + (i ? 44 : 12), c.y - 22, 19, 400); T(String(i + 3), i ? 1192 : c.x + c.w, c.y - 20, 27, 700, 'right'); });
+      [C[2], C[3]].forEach((c, i) => { T(spec, c.x + (i ? 44 : 12), c.y - 22, 19, 400); T(String(i + 3), i ? 1172 : c.x + c.w, c.y - 20, 27, 700, 'right'); });
       // 컷 아래 진행 방향 화살표
       [C[0], C[2]].forEach(c => { arrow(c.x + 58, c.y + c.h + 34); arrow(c.x + 466, c.y + c.h + 34); });
       [C[1], C[3]].forEach(c => arrow(c.x + 293, c.y + c.h + 34));
@@ -164,9 +165,10 @@ export const FRAMES = {
       ctx.beginPath(); ctx.moveTo(118, 50); ctx.quadraticCurveTo(160, 57, 214, 47); ctx.stroke(); ctx.restore();
       hand('stay by: you & the house', 110, 1628, 70, -.03, FONT_MARKER); hand('(mistakes welcome)', 1110, 1604, 50, -.045, FONT_MARKER, 'right');
       // 큰 글씨와 손으로 그은 화살표
-      hand('MISTAKES', 96, 1756, 122, -.015, FONT_MARKER); hand('MEMORIES', 1112, 1750, 122, -.015, FONT_MARKER, 'right');
-      ctx.save(); pen(8); ctx.beginPath(); ctx.moveTo(508, 1722); ctx.quadraticCurveTo(570, 1710, 650, 1714); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(622, 1692); ctx.lineTo(658, 1714); ctx.lineTo(620, 1736); ctx.stroke(); ctx.restore();
+      hand('MISTAKES', 96, 1756, 116, -.015, FONT_MARKER); hand('MEMORIES', 1112, 1750, 116, -.015, FONT_MARKER, 'right');
+      ctx.font = `400 116px ${FONT_MARKER}`; const a0 = 96 + ctx.measureText('MISTAKES').width + 26, a1 = 1112 - ctx.measureText('MEMORIES').width - 26;   // 화살표는 두 낱말 사이에만
+      ctx.save(); pen(8); ctx.beginPath(); ctx.moveTo(a0, 1722); ctx.quadraticCurveTo((a0 + a1) / 2, 1710, a1 - 8, 1714); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(a1 - 36, 1692); ctx.lineTo(a1, 1714); ctx.lineTo(a1 - 38, 1736); ctx.stroke(); ctx.restore();
     } }
 };
 export const FILTERS = { none: { ko: '그대로', en: 'Original' }, bw: { ko: '흑백', en: 'Mono' }, warm: { ko: '필름', en: 'Film' } };

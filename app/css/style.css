@@ -38,7 +38,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   padding-top:calc(clamp(16px,3vmin,36px) + env(safe-area-inset-top));padding-bottom:calc(clamp(16px,3vmin,36px) + env(safe-area-inset-bottom))}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:none}
 .bar h2{margin:0;font-size:1.25rem;font-weight:500;letter-spacing:-.01em}
-.steps{display:flex;gap:1.1em;list-style:none;margin:0;padding:0;font-family:var(--f-en);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-dim)}
+.bar .btn.ghost{flex:none}
+.steps{min-width:0;flex-wrap:wrap;row-gap:.35em;display:flex;gap:1.1em;list-style:none;margin:0;padding:0;font-family:var(--f-en);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-dim)}
 .steps li{display:flex;gap:.5em;align-items:center}
 .steps li b{font-weight:600}
 .steps li.on{color:var(--paper)}
@@ -84,6 +85,26 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .lede{margin:0;font-size:1.05rem;color:var(--paper);opacity:.9;max-width:30rem;text-wrap:balance}
 .fine{font-size:.74rem;color:var(--paper-dim);margin:0;max-width:30rem;text-wrap:balance}
 #s-idle .btn.big{margin-top:.3em}
+
+/* 언어 고르기: 첫 화면 오른쪽 위. 누르면 아래로 여섯 언어가 펼쳐진다 */
+.lang{position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:.35em}
+.lang .en{margin:0}
+.lang-btn{display:flex;align-items:center;gap:.45em;min-height:2.75em;padding:.35em .9em;border:1px solid rgba(241,236,225,.55);background:rgba(13,12,11,.35);font-family:var(--f-en);font-size:.9rem;letter-spacing:.04em}
+.lang-btn svg{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:1.5}
+.lang-btn[aria-expanded="true"]{background:var(--paper);color:var(--ink)}
+.lang-list{position:absolute;top:calc(2.75em + 6px);right:0;z-index:5;display:flex;flex-direction:column;min-width:10.5em;background:var(--ink-2);border-top:1px solid var(--paper);box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.lang-list button{min-height:2.9em;padding:.4em 1.1em;text-align:left;font-size:1rem;font-family:"Jost","WMH Serif",system-ui,sans-serif;color:var(--paper-dim)}
+.lang-list button[aria-checked="true"]{color:var(--paper);background:var(--ink-3)}
+.lang-list button[aria-checked="true"]::after{content:"✓";float:right;margin-left:1em}
+
+/* 언어별 글꼴: 화면용 한글 명조에는 악센트·가나·간체가 없다. 영·불·서는 Jost, 일·중은 기기 글꼴 */
+:root[lang=en],:root[lang=fr],:root[lang=es]{--f-kr:"Jost","Futura","Avenir Next","Century Gothic",sans-serif}
+:root[lang=ja]{--f-kr:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif CJK JP",serif}
+:root[lang=zh]{--f-kr:"Noto Serif SC","Noto Serif CJK SC","Songti SC",STSong,serif}
+/* keep-all 은 한글 낱말을 지키려는 것. 일·중은 글자 사이에서 줄을 바꿔야 넘치지 않는다 */
+:root[lang=ja] body,:root[lang=zh] body{word-break:normal;line-break:strict}
+/* 영어일 때는 버튼 아래 작은 영어 보조 글씨가 같은 말이 되므로 숨긴다 */
+:root[lang=en] .btn>small,:root[lang=en] .chips small,:root[lang=en] .frame span small{display:none}
 
 /* 2. 프레임 고르기 */
 .frames{container-type:size;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(14px,2.4vmin,30px);align-items:center;justify-items:center;padding:8px}
