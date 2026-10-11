@@ -23,6 +23,9 @@ const T = {
   home:       { ko: '처음으로', en: 'Start over', ja: '最初へ', zh: '返回首页', fr: 'Accueil', es: 'Inicio' },
   /* 프레임 고르기 */
   pickFrame:  { ko: '어떤 프레임에 담을까요?', en: 'Which frame would you like?', ja: 'どのフレームにしますか？', zh: '选择一个相框吧', fr: 'Quel cadre choisissez-vous ?', es: '¿Qué marco prefieres?' },
+  prevFrame:  { ko: '이전 프레임', en: 'Previous frame', ja: '前のフレーム', zh: '上一个相框', fr: 'Cadre précédent', es: 'Marco anterior' },
+  nextFrame:  { ko: '다음 프레임', en: 'Next frame', ja: '次のフレーム', zh: '下一个相框', fr: 'Cadre suivant', es: 'Marco siguiente' },
+  cuts:       { ko: n => '사진 ' + n + '장', en: n => n + (n > 1 ? ' photos' : ' photo'), ja: n => '写真' + n + '枚', zh: n => n + ' 张照片', fr: n => n + (n > 1 ? ' photos' : ' photo'), es: n => n + (n > 1 ? ' fotos' : ' foto') },
   toShoot:    { ko: '촬영하러 가기', en: 'Next', ja: '撮影へ進む', zh: '去拍照', fr: 'Passer aux photos', es: 'Ir a la cámara' },
   /* 촬영 */
   cancel:     { ko: '그만두기', en: 'Stop', ja: 'やめる', zh: '停止', fr: 'Arrêter', es: 'Parar' },
@@ -82,8 +85,9 @@ const T = {
 export let lang = DEF_LANG;
 /** 지금 언어의 문구. 함수로 된 문구는 args 를 넘긴다. 없으면 한국어 */
 export function t(key, ...args) { const e = T[key] || {}, v = e[lang] ?? e.ko ?? key; return typeof v === 'function' ? v(...args) : v; }
-/** 언어를 바꾸고 data-i18n 이 붙은 글자를 모두 다시 쓴다 */
+/** 언어를 바꾸고 data-i18n 이 붙은 글자(와 data-i18n-label 이 붙은 aria-label)를 모두 다시 쓴다 */
 export function setLang(l) {
   lang = LANGS[l] ? l : DEF_LANG; document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-label]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nLabel)));
 }

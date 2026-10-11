@@ -3,7 +3,7 @@
 /* ───────── 설정 ───────── */
 export const DEF = { countdown: 5, extra: 2, frame: 'story', filter: 'none', mirror: true, deviceId: '',
   caption: 'BUAM-DONG · SEOUL',
-  greetTitle: '당신의 추억을 담아드릴게요!', greetSub: '웰컴미스테익스하우스에서의 오늘을 사진으로 남겨보세요.', greetEn: 'We will keep your memories for you', logoLine: false, showDate: true, sound: true, idleSec: 120, safe: 2, logo: null, logoTint: false };
+  greetTitle: '당신의 추억을 담아드릴게요!', greetSub: '웰컴미스테익스하우스에서의 오늘을 사진으로 남겨보세요.', greetEn: 'We will keep your memories for you', logoLine: false, showDate: true, sound: true, idleSec: 120, safe: 2, logo: null, logoTint: false, uiFont: 'gaegu' };   // uiFont: 화면 글꼴 gaegu·gamja·dongle·singleday·serif
 const KEY = 'wmh-4cut-v1';
 export const S = (() => { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return Object.assign({}, DEF); } })();
 /** 설정을 태블릿에 저장. 실패하면 false (용량 초과 등) */

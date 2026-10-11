@@ -11,6 +11,12 @@
 @font-face{font-family:'WMH Brush';font-style:normal;font-weight:400;font-display:block;src:url(../fonts/brush.woff2) format('woff2')}
 @font-face{font-family:'WMH Bubble';font-style:normal;font-weight:400;font-display:block;src:url(../fonts/bubble.woff2) format('woff2')}
 @font-face{font-family:'WMH Sans';font-style:normal;font-weight:400;font-display:block;src:url(../fonts/wmh-sans-kr.woff2) format('woff2')}
+/* 화면 글꼴 넷(호스트 설정에서 고름, 기본 개구). 상용 한글 2,350자 + 라틴 + 기호만 추린 파일. 한 굵기뿐이라 굵기 범위를 넓게 잡아 가짜 굵게를 막는다.
+   size-adjust: 같은 크기에서 명조와 비슷한 너비가 되게 맞춘 값. 동글은 글자 폭이 좁아 크게 키운다 */
+@font-face{font-family:'WMH Gaegu';font-style:normal;font-weight:100 900;font-display:block;size-adjust:112%;src:url(../fonts/ui-gaegu.woff2) format('woff2')}
+@font-face{font-family:'WMH Gamja';font-style:normal;font-weight:100 900;font-display:block;size-adjust:114%;src:url(../fonts/ui-gamja.woff2) format('woff2')}
+@font-face{font-family:'WMH Dongle';font-style:normal;font-weight:100 900;font-display:block;size-adjust:160%;ascent-override:62%;descent-override:22%;src:url(../fonts/ui-dongle.woff2) format('woff2')}
+@font-face{font-family:'WMH Singleday';font-style:normal;font-weight:100 900;font-display:block;size-adjust:112%;src:url(../fonts/ui-singleday.woff2) format('woff2')}
 @font-face{font-family:'WMH Serif';font-style:normal;font-weight:400 700;font-display:block;src:url(../fonts/wmh-serif-kr.woff2) format('woff2')}
 
 /* 레이아웃: 먹색 바탕 위에 로고의 가는 흰 선과 '안으로 접힌 띠' 모양을 버튼·구획에 그대로 옮긴 키오스크 */
@@ -19,7 +25,8 @@
   --paper:#f1ece1; --paper-dim:rgba(241,236,225,.62); --line:rgba(241,236,225,.2);
   --wood:#c9a273; --seal:#b5402e;
   --f-en:"Jost","Futura","Avenir Next","Century Gothic",sans-serif;
-  --f-kr:"WMH Serif","Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;
+  --f-base:"WMH Serif","Noto Serif KR","AppleMyungjo","Nanum Myeongjo",serif;   /* 정석 글꼴: 버튼 글씨. 언어별로 아래에서 바뀐다 */
+  --f-kr:var(--f-base);   /* 제목·안내문 글꼴: 호스트 설정의 화면 글꼴(한국어·영어)이 여기 들어간다 */
   --notch:.9em;
   color-scheme:dark;
 }
@@ -98,22 +105,49 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .lang-list button[aria-checked="true"]::after{content:"✓";float:right;margin-left:1em}
 
 /* 언어별 글꼴: 화면용 한글 명조에는 악센트·가나·간체가 없다. 영·불·서는 Jost, 일·중은 기기 글꼴 */
-:root[lang=en],:root[lang=fr],:root[lang=es]{--f-kr:"Jost","Futura","Avenir Next","Century Gothic",sans-serif}
-:root[lang=ja]{--f-kr:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif CJK JP",serif}
-:root[lang=zh]{--f-kr:"Noto Serif SC","Noto Serif CJK SC","Songti SC",STSong,serif}
+:root[lang=en],:root[lang=fr],:root[lang=es]{--f-base:"Jost","Futura","Avenir Next","Century Gothic",sans-serif}
+:root[lang=ja]{--f-base:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif CJK JP",serif}
+:root[lang=zh]{--f-base:"Noto Serif SC","Noto Serif CJK SC","Songti SC",STSong,serif}
 /* keep-all 은 한글 낱말을 지키려는 것. 일·중은 글자 사이에서 줄을 바꿔야 넘치지 않는다 */
 :root[lang=ja] body,:root[lang=zh] body{word-break:normal;line-break:strict}
+/* 화면 글꼴(호스트 설정): 한국어·영어에만. 불·서는 세 글꼴에 악센트가 없어 Jost, 일·중은 기기 글꼴 그대로 */
+:root[data-font=gaegu]:is([lang=ko],[lang=en]){--f-kr:"WMH Gaegu","WMH Serif",sans-serif}
+:root[data-font=gamja]:is([lang=ko],[lang=en]){--f-kr:"WMH Gamja","WMH Serif",sans-serif}
+:root[data-font=dongle]:is([lang=ko],[lang=en]){--f-kr:"WMH Dongle","WMH Serif",sans-serif}
+:root[data-font=singleday]:is([lang=ko],[lang=en]){--f-kr:"WMH Singleday","WMH Serif",sans-serif}
+/* 버튼 안 글씨는 화면 글꼴과 상관없이 정석 글꼴 */
+.btn,.chips button{font-family:var(--f-base)}
 /* 영어일 때는 버튼 아래 작은 영어 보조 글씨가 같은 말이 되므로 숨긴다 */
 :root[lang=en] .btn>small,:root[lang=en] .chips small,:root[lang=en] .frame span small{display:none}
 
-/* 2. 프레임 고르기 */
-.frames{container-type:size;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(14px,2.4vmin,30px);align-items:center;justify-items:center;padding:8px}
-.frame{display:flex;flex-direction:column;align-items:center;gap:.7em;min-width:0;width:100%}
-.frame canvas{display:block;width:min(100%,calc((100cqh - 4.6em) * 2 / 3));height:auto;aspect-ratio:2/3;outline:1px solid var(--line);outline-offset:5px;transition:outline-color .15s,transform .15s}
-@media (orientation:portrait){.frames{grid-template-columns:repeat(6,minmax(0,1fr))}.frame{grid-column:span 2}.frame:nth-child(4){grid-column:2/span 2}.frame canvas{width:min(100%,calc((50cqh - 5.4em) * 2 / 3))}}
-.frame[aria-pressed="true"] canvas{outline:2px solid var(--paper);transform:translateY(-4px)}
-.frame span{font-size:1.05rem;line-height:1.2;display:flex;flex-direction:column;align-items:center}
-.frame span small{font-family:var(--f-en);font-size:.62em;letter-spacing:.18em;color:var(--paper-dim);text-transform:uppercase}
+/* 2. 프레임 고르기: 한 장씩 옆으로 넘긴다 (띠를 옮김, 밀기는 main.js). 아래 줄에 화살표와 점 */
+.pick-body{grid-template-rows:minmax(0,1fr) auto;gap:clamp(8px,1.6vmin,16px)}
+.frames{container-type:size;min-height:0;overflow:hidden;touch-action:pan-y;cursor:grab}
+.frames-track{display:flex;height:100%;transition:transform .34s cubic-bezier(.22,.7,.2,1);will-change:transform}
+.frames-track.drag{transition:none}
+.frame{flex:0 0 100%;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9em;padding:10px 0}
+.frame canvas{display:block;height:auto;width:min(calc(100cqw - 24px),calc((100cqh - 6.2em) * 2 / 3));aspect-ratio:2/3;outline:1px solid var(--line);outline-offset:6px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
+.frame span{font-size:1.3rem;line-height:1.15;display:flex;flex-direction:column;align-items:center;gap:.15em}
+.frame span small{font-family:var(--f-en);font-size:.5em;letter-spacing:.2em;color:var(--paper-dim);text-transform:uppercase}
+.frame span em{font-style:normal;font-size:.62em;color:var(--paper-dim)}
+.car-nav{display:flex;align-items:center;justify-content:center;gap:clamp(10px,3vmin,28px)}
+.car-arrow{width:3.2em;height:3.2em;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);flex:none}
+.car-arrow:active{background:var(--ink-3)}
+.car-arrow svg{width:1.5em;height:1.5em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:square}
+.car-dots{display:flex}
+.car-dots button{width:2.2em;height:2.75em;display:flex;align-items:center;justify-content:center}
+.car-dots button::before{content:"";width:.5em;height:.5em;border-radius:50%;background:var(--paper-dim);opacity:.5;transition:width .2s,opacity .2s}
+.car-dots button[aria-current="true"]::before{width:1.4em;border-radius:.25em;background:var(--paper);opacity:1}
+/* 가로 화면: 세로 공간이 좁아 이름을 프레임 오른쪽에 두고, 화살표는 양옆 끝으로 보낸다 */
+@media (orientation:landscape){
+  .pick-body{position:relative}
+  .frame{flex-direction:row;gap:clamp(16px,3vw,40px);padding:6px 0}
+  .frame canvas{width:min(calc(100cqw - 22rem),calc((100cqh - 16px) * 2 / 3))}
+  .frame span{align-items:flex-start;min-width:6.5em}
+  .car-arrow{position:absolute;top:calc((100% - 2.75em) / 2);transform:translateY(-50%);background:rgba(13,12,11,.6)}
+  #btnFramePrev{left:0}
+  #btnFrameNext{right:0}
+}
 
 /* 3. 촬영 */
 .finder-wrap{container-type:size;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;padding:9px}

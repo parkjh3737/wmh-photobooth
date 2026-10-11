@@ -50,16 +50,52 @@ function shutter() {
 /* ───────── 2. 프레임 고르기 ───────── */
 const cur = { frame: S.frame, filter: S.filter };
 const previewOpts = (frame, shots, filter) => ({ frame, shots, filter: filter || 'none', safe: 0, date: S.showDate ? today() : '', today: today(), caption: S.caption });
-function renderFrameGrid() {
-  const grid = $('#frameGrid'), demo = demoShots(4), tmp = mk(1200, 1800); grid.innerHTML = '';
-  Object.keys(FRAMES).forEach(k => {
-    const b = document.createElement('button'); b.className = 'frame'; b.dataset.frame = k; b.setAttribute('aria-pressed', k === cur.frame);
-    const c = mk(400, 600); compose(tmp, previewOpts(k, demo)); c.getContext('2d').drawImage(tmp, 0, 0, 400, 600);
-    const s = document.createElement('span'); s.innerHTML = `${t('frame.' + k)}<small>${FRAMES[k].en}</small>`;
-    b.append(c, s); b.onclick = () => { cur.frame = k; $$('#frameGrid .frame').forEach(f => f.setAttribute('aria-pressed', f.dataset.frame === k)); };
-    grid.append(b);
-  });
+/* 프레임은 한 장씩 넘겨 본다(옆으로 밀기·화살표·점). 화면에 보이는 프레임이 고른 프레임이다 */
+const frameKeys = () => Object.keys(FRAMES);
+const previews = { day: '', map: {} };   // 견본 미리보기는 그리기가 무거워 하루 동안 다시 쓴다(설정을 저장하면 다시 그림)
+function previewOf(k) {
+  if (previews.day !== today()) { previews.day = today(); previews.map = {}; }
+  if (!previews.map[k]) { const tmp = mk(1200, 1800), c = mk(600, 900); compose(tmp, previewOpts(k, demoShots(4))); c.getContext('2d').drawImage(tmp, 0, 0, 600, 900); previews.map[k] = c; }
+  return previews.map[k];
 }
+function renderFrameGrid() {
+  const view = $('#frameGrid'), dots = $('#frameDots'), keys = frameKeys(), track = document.createElement('div'); track.className = 'frames-track'; track.id = 'frameTrack';
+  view.innerHTML = ''; dots.innerHTML = ''; view.append(track);
+  keys.forEach((k, i) => {
+    const sl = document.createElement('div'); sl.className = 'frame'; sl.dataset.frame = k; sl.setAttribute('role', 'group'); sl.setAttribute('aria-roledescription', 'slide'); sl.setAttribute('aria-label', `${i + 1} / ${keys.length}`);
+    const s = document.createElement('span'); s.innerHTML = `${t('frame.' + k)}<small>${FRAMES[k].en}</small><em>${t('cuts', FRAMES[k].need)}</em>`;
+    sl.append(previewOf(k), s); track.append(sl);
+    const d = document.createElement('button'); d.type = 'button'; d.setAttribute('aria-label', t('frame.' + k)); d.onclick = () => goFrame(i); dots.append(d);
+  });
+  goFrame(keys.indexOf(cur.frame), false);
+}
+/* 슬라이드는 스크롤이 아니라 띠(track)를 옆으로 옮겨 보여 준다. 스크롤+snap 은 기기마다 코드로 옮길 때 움직이지 않는 경우가 있었다 */
+let carI = 0;
+function goFrame(i, smooth = true) {
+  const n = frameKeys().length, tr = $('#frameTrack'); carI = (i + n) % n; cur.frame = frameKeys()[carI]; paintFrameDots();
+  if (!tr) return; tr.classList.toggle('drag', !smooth); tr.style.transform = `translateX(${-carI * 100}%)`;
+  $$('#frameTrack .frame').forEach((f, j) => f.setAttribute('aria-hidden', j !== carI));
+}
+function paintFrameDots() { const i = frameKeys().indexOf(cur.frame); $$('#frameDots button').forEach((d, j) => d.setAttribute('aria-current', j === i)); }
+$('#btnFramePrev').onclick = () => goFrame(carI - 1);
+$('#btnFrameNext').onclick = () => goFrame(carI + 1);
+/* 손가락(또는 마우스)으로 옆으로 밀기: 너비의 18% 넘게 밀거나 빠르게 튕기면 한 장 넘어간다. 양 끝에서는 덜 끌려가고 넘어가지 않는다 */
+let drag = null;
+const view = $('#frameGrid');
+view.addEventListener('pointerdown', e => { if (e.button > 0) return; drag = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId, dx: 0, on: false }; });
+view.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y, n = frameKeys().length;
+  if (!drag.on) { if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return; drag.on = true; try { view.setPointerCapture(e.pointerId); } catch (err) {} $('#frameTrack').classList.add('drag'); }
+  const edge = (carI === 0 && dx > 0) || (carI === n - 1 && dx < 0); drag.dx = edge ? dx * .35 : dx;
+  $('#frameTrack').style.transform = `translateX(calc(${-carI * 100}% + ${drag.dx}px))`;
+});
+const endDrag = e => {
+  if (!drag || e.pointerId !== drag.id) return; const d = drag; drag = null; if (!d.on) return;
+  const n = frameKeys().length, fast = Math.abs(d.dx) / Math.max(1, performance.now() - d.t) > .45 && Math.abs(d.dx) > 30;
+  const step = (Math.abs(d.dx) > view.clientWidth * .18 || fast) ? (d.dx < 0 ? 1 : -1) : 0;
+  goFrame(Math.max(0, Math.min(n - 1, carI + step)));
+};
+view.addEventListener('pointerup', endDrag); view.addEventListener('pointercancel', endDrag);
 /* ───────── 1. 첫 화면: 스테이 사진 + 인사말 ───────── */
 const hero = { list: [], at: -1, timer: null, layer: 0 };
 const probe = u => new Promise(r => { const im = new Image(); im.onload = () => r(true); im.onerror = () => r(false); im.src = u; });
@@ -77,6 +113,7 @@ function heroNext() {
   on.onload = () => { on.classList.add('on'); off.classList.remove('on'); }; on.src = hero.list[hero.at];
 }
 function heroPlay() { clearInterval(hero.timer); if (hero.list.length > 1) hero.timer = setInterval(() => { if (state.screen === 'idle' && document.visibilityState === 'visible') heroNext(); }, 9000); }
+const applyFont = () => { document.documentElement.dataset.font = S.uiFont || DEF.uiFont; };   // 화면 글꼴 (호스트 설정)
 function renderIdle() {
   const fb = $('#heroFallback');
   if (hero.list.length) fb.hidden = true;
@@ -218,7 +255,7 @@ const hold = $('#logoHold');
 hold.addEventListener('pointerdown', () => { holdT = setTimeout(openSettings, 2000); });
 ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => hold.addEventListener(ev, () => clearTimeout(holdT)));
 async function openSettings() {
-  $('#setExtra').value = String(S.extra); $('#setCount').value = S.countdown; $('#setIdle').value = S.idleSec; $('#setCaption').value = S.caption; $('#setGreet').value = S.greetTitle; $('#setGreetSub').value = S.greetSub; $('#setGreetEn').value = S.greetEn; $('#setSafe').value = S.safe;
+  $('#setExtra').value = String(S.extra); $('#setFont').value = S.uiFont || DEF.uiFont; $('#setCount').value = S.countdown; $('#setIdle').value = S.idleSec; $('#setCaption').value = S.caption; $('#setGreet').value = S.greetTitle; $('#setGreetSub').value = S.greetSub; $('#setGreetEn').value = S.greetEn; $('#setSafe').value = S.safe;
   $('#setMirror').checked = !!S.mirror; $('#setDate').checked = !!S.showDate; $('#setSound').checked = !!S.sound; $('#setTint').checked = !!S.logoTint; $('#setLine').checked = !!S.logoLine;
   $('#logoState').textContent = S.logo ? '이 태블릿에 올린 로고 파일을 쓰고 있습니다.' : '공식 사이트 로고(app/logo/logo.png)를 쓰고 있습니다.';
   const sel = $('#setCamera'); sel.length = 1;
@@ -229,15 +266,15 @@ $('#btnCloseSet').onclick = () => { $('#settings').hidden = true; };
 $('#btnSaveSet').onclick = () => {
   const num = (id, lo, hi, d) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
   Object.assign(S, { extra: +$('#setExtra').value, countdown: Math.round(num('#setCount', 2, 10, 5)), idleSec: Math.round(num('#setIdle', 30, 900, 120)), caption: $('#setCaption').value.trim(), greetTitle: $('#setGreet').value.trim() || DEF.greetTitle, greetSub: $('#setGreetSub').value.trim(), greetEn: $('#setGreetEn').value.trim(), safe: num('#setSafe', 0, 6, 2),
-    mirror: $('#setMirror').checked, showDate: $('#setDate').checked, sound: $('#setSound').checked, logoTint: $('#setTint').checked, logoLine: $('#setLine').checked, deviceId: $('#setCamera').value, frame: cur.frame });
-  save(); renderIdle(); $('#settings').hidden = true; toast('저장했습니다.');
+    mirror: $('#setMirror').checked, showDate: $('#setDate').checked, sound: $('#setSound').checked, logoTint: $('#setTint').checked, logoLine: $('#setLine').checked, deviceId: $('#setCamera').value, frame: cur.frame, uiFont: $('#setFont').value });
+  save(); previews.map = {}; applyFont(); renderIdle(); $('#settings').hidden = true; toast('저장했습니다.');
 };
 $('#setLogo').onchange = e => {
   const f = e.target.files[0]; if (!f) return; const fr = new FileReader();
-  fr.onload = async () => { await loadLogo(fr.result); S.logo = logoRaw ? logoRaw.toDataURL('image/png') : null; if (!S.logo) await loadLogo(LOGO_FILE); save(); renderIdle(); $('#logoState').textContent = S.logo ? '올린 로고 파일을 쓰고 있습니다.' : '이 파일은 읽지 못했습니다.'; };
+  fr.onload = async () => { await loadLogo(fr.result); S.logo = logoRaw ? logoRaw.toDataURL('image/png') : null; if (!S.logo) await loadLogo(LOGO_FILE); save(); previews.map = {}; renderIdle(); $('#logoState').textContent = S.logo ? '올린 로고 파일을 쓰고 있습니다.' : '이 파일은 읽지 못했습니다.'; };
   fr.readAsDataURL(f);
 };
-$('#btnLogoReset').onclick = async () => { S.logo = null; await loadLogo(LOGO_FILE); save(); renderIdle(); $('#setLogo').value = ''; $('#logoState').textContent = '공식 사이트 로고(app/logo/logo.png)를 쓰고 있습니다.'; };
+$('#btnLogoReset').onclick = async () => { S.logo = null; await loadLogo(LOGO_FILE); save(); previews.map = {}; renderIdle(); $('#setLogo').value = ''; $('#logoState').textContent = '공식 사이트 로고(app/logo/logo.png)를 쓰고 있습니다.'; };
 $('#btnFull').onclick = () => { const d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || (() => toast('이 기기는 "홈 화면에 추가"로 전체 화면을 씁니다.'))).call(d); };
 $('#btnTestPrint').onclick = () => { const c = mk(1200, 1800); compose(c, { frame: cur.frame, filter: 'none', shots: demoShots(4), safe: parseFloat($('#setSafe').value) || 0, date: today(), today: today(), caption: $('#setCaption').value.trim() }); printCanvas(c); };
 
@@ -249,6 +286,7 @@ addEventListener('popstate', () => { history.pushState({ wmh: 1 }, ''); if (!$('
 (async () => {
   try { await Promise.all([document.fonts.load('700 40px Jost'), document.fonts.load('300 40px Jost'), document.fonts.load('400 40px Jost'), document.fonts.load('500 40px "WMH Serif"', '환영'), document.fonts.load('40px "WMH Hand"'), document.fonts.load('40px "WMH Marker"'),
     document.fonts.load('40px "WMH Script"'), document.fonts.load('40px "WMH Bubble"'), document.fonts.load('40px "WMH Brush"'), document.fonts.load('25px "WMH Sans"', '추억')]); } catch (e) {}
+  applyFont(); try { await document.fonts.load('500 40px ' + getComputedStyle(document.body).getPropertyValue('--f-kr'), '가A'); } catch (e) {}
   await loadLogo(S.logo || LOGO_FILE); hero.list = await findPhotos(); changeLang(DEF_LANG); heroNext(); heroPlay(); show('idle');
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   window.__wmh = { compose, demoShots, FRAMES, LAYOUTS, state, cur, hero };   // 테스트·디버깅용
